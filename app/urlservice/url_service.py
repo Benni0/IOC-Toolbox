@@ -1,0 +1,76 @@
+from urllib.request import Request
+from fastapi import APIRouter, Depends, Query
+from fastapi.responses import JSONResponse
+import re
+
+from .models import LookupResult, UrlTrace, Domain, Url
+from .utils.url_trace import trace_url, UrlTracingException
+from .utils.domain_lookups import ALEXA_ONE_MILL, CISCO_UMBRELLA_ONE_MILL
+
+from ..api_security import check_api_key
+
+
+router = APIRouter(
+    prefix="/url",
+    tags=['URL Service']
+)
+
+async def url_tracing_exception_handler(reqest: Request, e: UrlTracingException):
+    return JSONResponse(
+        status_code=424,
+        content={"message": e.message}
+    )
+
+exception_handers = [(UrlTracingException, url_tracing_exception_handler)]
+
+@router.post("/calltrace", response_model=UrlTrace )
+async def traceUrlCall(url: str = Query(None, regex="^https?://.*$"), list_lookup: bool = False, auth = Depends(check_api_key)):
+    trace = UrlTrace(
+        base_url=url
+    )
+    
+    domains = []
+    for url, status_code in trace_url(url):
+        trace.traced_urls.append(Url(url=url, status_code=status_code))
+        domain = re.search("https?://([^/:]+).*", url)[1]
+        domains.append(domain)
+        
+    for domain in set(domains):
+        d = Domain(domain=domain)
+        if list_lookup and ALEXA_ONE_MILL.lookup_domain(domain) is not None:
+            d.tags.append("ALEXA_ONE_MILL")
+        if list_lookup and CISCO_UMBRELLA_ONE_MILL.lookup_domain(domain) is not None:
+            d.tags.append("CISCO_UMBRELLA_ONE_MILL")
+        trace.traced_domains.append(d)
+    return trace
+
+
+@router.post("/lookup/alexa")
+async def urlLookup(domain: str, auth = Depends(check_api_key)):
+    lookup_result = ALEXA_ONE_MILL.lookup_domain(domain)
+    if lookup_result is not None:
+        return LookupResult(
+            domain=domain,
+            is_in_list=True,
+            rank=lookup_result[1]
+        )
+    else:
+        return LookupResult(
+            domain=domain,
+            is_in_list=False
+        )
+
+@router.post("/lookup/umbrella")
+async def urlLookup(domain: str, auth = Depends(check_api_key)):
+    lookup_result = CISCO_UMBRELLA_ONE_MILL.lookup_domain(domain)
+    if lookup_result is not None:
+        return LookupResult(
+            domain=domain,
+            is_in_list=True,
+            rank=lookup_result[1]
+        )
+    else:
+        return LookupResult(
+            domain=domain,
+            is_in_list=False
+        )
