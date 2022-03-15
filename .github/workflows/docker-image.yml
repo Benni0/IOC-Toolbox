@@ -32,5 +32,5 @@ jobs:
         context: .
         push: true
         tags: |
-          benni/url-toolbox:latest
+          benni0/url-toolbox:latest
           ghcr.io/Benni0/url-toolbox:latest
