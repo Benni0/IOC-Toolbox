@@ -9,10 +9,28 @@ on:
 jobs:
 
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag url-toolbox:$(date +%s)
+    - name: Checkout repository 
+      uses: actions/checkout@v2
+      
+    - name: Log in to the Container registry
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+      
+    #- name: Build the Docker image
+    #  run: docker build . --file Dockerfile --tag url-toolbox:$(date +%s)
+    - name: Build and push
+      if: github.event_name != 'pull_request'
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: |
+          benni/url-toolbox:latest
+          ghcr.io/Benni0/url-toolbox:latest
