@@ -33,4 +33,4 @@ jobs:
         push: true
         tags: |
           benni0/url-toolbox:latest
-          ghcr.io/Benni0/url-toolbox:latest
+          ghcr.io/benni0/url-toolbox:latest
