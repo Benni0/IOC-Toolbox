@@ -2,8 +2,7 @@ import os
 from fastapi import Request, HTTPException, Depends
 from fastapi.security import HTTPBearer
 
-#API_KEYS = os.getenv('API_KEY').split(",")
-API_KEYS = "hugo,hugine".split(",")
+API_KEYS = os.getenv('API_KEY').split(",")
 
 security = HTTPBearer()
 

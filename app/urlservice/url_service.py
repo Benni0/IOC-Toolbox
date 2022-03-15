@@ -6,6 +6,7 @@ import re
 from .models import LookupResult, UrlTrace, Domain, Url
 from .utils.url_trace import trace_url, UrlTracingException
 from .utils.domain_lookups import ALEXA_ONE_MILL, CISCO_UMBRELLA_ONE_MILL
+from .utils.dns_lookups import get_master
 
 from ..api_security import check_api_key
 
@@ -23,8 +24,12 @@ async def url_tracing_exception_handler(reqest: Request, e: UrlTracingException)
 
 exception_handers = [(UrlTracingException, url_tracing_exception_handler)]
 
-@router.post("/calltrace", response_model=UrlTrace )
-async def traceUrlCall(url: str = Query(None, regex="^https?://.*$"), list_lookup: bool = False, auth = Depends(check_api_key)):
+@router.get("/calltrace", response_model=UrlTrace )
+async def traceUrlCall(
+    url: str = Query(None, regex="^https?://.*$"), 
+    enable_tagging: bool = False, 
+    auth = Depends(check_api_key)):
+    
     trace = UrlTrace(
         base_url=url
     )
@@ -34,18 +39,23 @@ async def traceUrlCall(url: str = Query(None, regex="^https?://.*$"), list_looku
         trace.traced_urls.append(Url(url=url, status_code=status_code))
         domain = re.search("https?://([^/:]+).*", url)[1]
         domains.append(domain)
-        
+
     for domain in set(domains):
         d = Domain(domain=domain)
-        if list_lookup and ALEXA_ONE_MILL.lookup_domain(domain) is not None:
-            d.tags.append("ALEXA_ONE_MILL")
-        if list_lookup and CISCO_UMBRELLA_ONE_MILL.lookup_domain(domain) is not None:
-            d.tags.append("CISCO_UMBRELLA_ONE_MILL")
+            
+        if enable_tagging:
+            dns_master = get_master(domain)
+            domain_in_alexa = ALEXA_ONE_MILL.lookup_domain(domain)
+            domain_in_umbrella = CISCO_UMBRELLA_ONE_MILL.lookup_domain(domain)
+            if dns_master: d.tags.append(f"dns:{dns_master}")
+            if domain_in_alexa: d.tags.append("ALEXA_ONE_MILL")
+            if domain_in_umbrella: d.tags.append("CISCO_UMBRELLA_ONE_MILL")
+            
         trace.traced_domains.append(d)
     return trace
 
 
-@router.post("/lookup/alexa")
+@router.get("/lookup/alexa")
 async def urlLookup(domain: str, auth = Depends(check_api_key)):
     lookup_result = ALEXA_ONE_MILL.lookup_domain(domain)
     if lookup_result is not None:
@@ -60,7 +70,7 @@ async def urlLookup(domain: str, auth = Depends(check_api_key)):
             is_in_list=False
         )
 
-@router.post("/lookup/umbrella")
+@router.get("/lookup/umbrella")
 async def urlLookup(domain: str, auth = Depends(check_api_key)):
     lookup_result = CISCO_UMBRELLA_ONE_MILL.lookup_domain(domain)
     if lookup_result is not None:
