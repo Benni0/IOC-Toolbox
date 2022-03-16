@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, constr
 from typing import List
 
 
@@ -23,3 +23,6 @@ class LookupResult(BaseModel):
     domain: str
     is_in_list: bool
     rank: int = 0
+    
+class LookupUrl(BaseModel):
+    url: constr(regex=r'^https?://.*$')

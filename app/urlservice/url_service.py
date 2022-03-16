@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 import re
 
-from .models import LookupResult, UrlTrace, Domain, Url
+from .models import LookupResult, UrlTrace, Domain, Url, LookupUrl
 from .utils.url_trace import trace_url, UrlTracingException
 from .utils.domain_lookups import ALEXA_ONE_MILL, CISCO_UMBRELLA_ONE_MILL
 from .utils.dns_lookups import get_master
@@ -24,18 +24,18 @@ async def url_tracing_exception_handler(reqest: Request, e: UrlTracingException)
 
 exception_handers = [(UrlTracingException, url_tracing_exception_handler)]
 
-@router.get("/calltrace", response_model=UrlTrace )
+@router.post("/calltrace", response_model=UrlTrace )
 async def traceUrlCall(
-    url: str = Query(None, regex="^https?://.*$"), 
+    lookup_url: LookupUrl,
     enable_tagging: bool = False, 
     auth = Depends(check_api_key)):
     
     trace = UrlTrace(
-        base_url=url
+        base_url=lookup_url.url
     )
     
     domains = []
-    for url, status_code in trace_url(url):
+    for url, status_code in trace_url(lookup_url.url):
         trace.traced_urls.append(Url(url=url, status_code=status_code))
         domain = re.search("https?://([^/:]+).*", url)[1]
         domains.append(domain)
