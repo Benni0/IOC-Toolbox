@@ -1,6 +1,8 @@
 from pydantic import BaseModel, constr
 from typing import List, Optional
 
+class Success(BaseModel):
+    state: str
 
 class Domain(BaseModel):
     domain: str
