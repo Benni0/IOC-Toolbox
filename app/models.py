@@ -1,16 +1,24 @@
 from pydantic import BaseModel, constr
-from typing import List
+from typing import List, Optional
 
 
 class Domain(BaseModel):
     domain: str
     tags:  List[str] = []
+    dns_master: Optional[str]
 
 
 class Url(BaseModel):
     url: str
     status_code: int
     tags:  List[str] = []
+    
+
+class IP(BaseModel):
+    ip: str
+    tags: List[str] = []
+    ptr: Optional[str]
+    forward_lookup_match: bool = False
 
 
 class UrlTrace(BaseModel):
