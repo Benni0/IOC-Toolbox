@@ -33,3 +33,4 @@ jobs:
         push: true
         tags: |
           ghcr.io/benni0/url-toolbox:latest
+          ghcr.io/benni0/ioc-toolbox:latest
