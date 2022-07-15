@@ -1,4 +1,5 @@
 import requests
+import urllib.parse
 import re
 
 class UrlTracingException(Exception):
@@ -6,6 +7,13 @@ class UrlTracingException(Exception):
         self.message = message
 
 def trace_url(url):
+
+    if re.search("^https://eur04\.safelinks\.protection\.outlook\.com\/?\?url=.*$", url):
+        original_url = re.findall('url=(.*?)&', url)
+        if len(original_url)==1:
+            url = urllib.parse.unquote(original_url[0])
+            print(f"new url: {url}")
+
     called_urls = []
 
     try:
