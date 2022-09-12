@@ -6,8 +6,6 @@ import re
 from app.models import LookupResult, UrlTrace, Domain, Url, LookupUrl
 from app.routers.domain_service import domainLookup
 from app.utils.url_trace import trace_url, UrlTracingException
-from app.utils.domain_lookups import ALEXA_ONE_MILL, CISCO_UMBRELLA_ONE_MILL
-from app.utils.dns_lookups import get_master
 
 from app.api_security import check_api_key
 

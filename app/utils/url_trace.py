@@ -28,6 +28,11 @@ def trace_url(url):
         if(len(match) > 0):
             return trace_url(match[0])
 
+    if(re.search("^https?://www.google.com/url\?.*$", request_result.url)):
+        match = re.findall('url=(https?://[^\s<]+)&', request_result.url)
+        if(len(match) > 0):
+            return trace_url(match[0])
+
     for result in request_result.history:
         called_urls.append((result.url, result.status_code))
     called_urls.append((request_result.url, request_result.status_code))
