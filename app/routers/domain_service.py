@@ -18,7 +18,7 @@ router = APIRouter(
 async def domainLookup(domain: str, auth = Depends(check_api_key)):
     lists = {
         'CISCO_UMBRELLA_ONE_MILL': CISCO_UMBRELLA_ONE_MILL,
-        'ALEXA_ONE_MILL': ALEXA_ONE_MILL,
+        #'ALEXA_ONE_MILL': ALEXA_ONE_MILL,
     }
     
     tags = []

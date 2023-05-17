@@ -41,7 +41,7 @@ class CiscoUmbrellaOneMill(BaseLookupList):
 class AlexaOneMill(BaseLookupList):
     def __init__(self):        
         self.url = "http://s3.amazonaws.com/alexa-static/top-1m.csv.zip"
-        self.file = "top-1m.csv"
+        self.file = "top-1m.csv.deprecated"
         super(AlexaOneMill, self).__init__(self.url, self.file)
 
 ALEXA_ONE_MILL = AlexaOneMill()
